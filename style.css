@@ -1,0 +1,78 @@
+/*
+Theme Name: relilab Child
+Theme URI: https://creativethemes.com/blocksy/
+Template: blocksy
+Author: CreativeThemes
+Author URI: https://creativethemes.com
+Description: Blocksy is a blazing fast and lightweight WordPress theme built with the latest web technologies. It was built with the Gutenberg editor in mind and has a lot of options that makes it extendable and customizable. You can easily create any type of website, such as business agency, shop, corporate, education, restaurant, blog, portfolio, landing page and so on. It works like a charm with popular WordPress page builders, including Elementor, Beaver Builder, Visual Composer and Brizy. Since it is responsive and adaptive, translation ready, SEO optimized and has WooCommerce built-in, you will experience an easy build and even an increase in conversions. Note: Blocksy is built with the latest web technologies in order to bring you the smoothest experience, that told, old browsers like IE 11 and below may not work as expected. We strongly recommend you to update/switch to a modern browser.
+Tags: blog,e-commerce,wide-blocks,block-styles,grid-layout,one-column,two-columns,three-columns,four-columns,right-sidebar,left-sidebar,translation-ready,custom-colors,custom-logo,custom-menu,featured-images,footer-widgets,full-width-template,theme-options,threaded-comments
+Version: 1.7.42.1603972344
+Updated: 2020-10-29 12:52:24
+
+*/
+.relilab-buttons{
+    float:right;
+    margin-right: 5%;
+    max-width: 250px;
+}
+.relilab-buttons .button{
+    background-image:linear-gradient(to right, #D429ED, #FE7E0B);
+    border-radius:20px;
+    border: 1px solid #935DF7;
+    font-weight: bold;
+}
+
+.entry-tags a.cc-license{
+    background-color: #ddd;
+    border: 1px solid var(--paletteColor2);
+}
+.entry-tags a.cc-license:hover{
+    background-color: var(--paletteColor2);
+}
+.tree{
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+    margin-bottom:10px;
+}
+span.themen a {
+    background-color: #F56E36 !important;
+}
+span.themen a:hover {
+    background-color: var(--paletteColor2)!important;
+}
+span.klassenstufe a {
+    background-color: mediumseagreen !important;
+}
+span.klassenstufe a:hover {
+    background-color: var(--paletteColor2)!important;
+}
+
+.wp-block-relilab-lehrplan{
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    margin-top: 20px;
+}
+
+.learnview-container{
+    max-width: 1096px;
+}
+#wpadminbar{
+  background-color: #0073AA!important;
+}
+
+.tree{
+    max-width: 100%!important;
+    overflow: hidden;
+}
+/*Ansicht auf dem Handy*/
+@media (max-width: 800px) {
+    .ct-container,article{
+        /*margin-left: 2px!important;
+        margin-right: 0px!important;
+        padding: 0!important;*/
+        max-width: 100%!important;
+    }
+}
+
