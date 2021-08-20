@@ -1,14 +1,12 @@
 /*
 Theme Name: relilab Child
-Theme URI: https://creativethemes.com/blocksy/
+Theme URI: https://github.com/rpi-virtuell/relilab-child
 Template: blocksy
-Author: CreativeThemes
-Author URI: https://creativethemes.com
-Description: Blocksy is a blazing fast and lightweight WordPress theme built with the latest web technologies. It was built with the Gutenberg editor in mind and has a lot of options that makes it extendable and customizable. You can easily create any type of website, such as business agency, shop, corporate, education, restaurant, blog, portfolio, landing page and so on. It works like a charm with popular WordPress page builders, including Elementor, Beaver Builder, Visual Composer and Brizy. Since it is responsive and adaptive, translation ready, SEO optimized and has WooCommerce built-in, you will experience an easy build and even an increase in conversions. Note: Blocksy is built with the latest web technologies in order to bring you the smoothest experience, that told, old browsers like IE 11 and below may not work as expected. We strongly recommend you to update/switch to a modern browser.
-Tags: blog,e-commerce,wide-blocks,block-styles,grid-layout,one-column,two-columns,three-columns,four-columns,right-sidebar,left-sidebar,translation-ready,custom-colors,custom-logo,custom-menu,featured-images,footer-widgets,full-width-template,theme-options,threaded-comments
-Version: 1.7.42.1603972344
-Updated: 2020-10-29 12:52:24
-
+Author: Joachim Happel
+Author URI: https://github.com/johappel
+Description: Based on Blocksy Theme (https://creativethemes.com)
+Tags: oer, education
+Version: 1.0.1
 */
 .relilab-buttons{
     float:right;
@@ -35,6 +33,8 @@ Updated: 2020-10-29 12:52:24
     padding: 10px 0;
     margin-bottom:10px;
 }
+/*
+
 span.themen a {
     background-color: #F56E36 !important;
 }
@@ -47,6 +47,7 @@ span.klassenstufe a {
 span.klassenstufe a:hover {
     background-color: var(--paletteColor2)!important;
 }
+*/
 
 .wp-block-relilab-lehrplan{
     border-radius: 5px;

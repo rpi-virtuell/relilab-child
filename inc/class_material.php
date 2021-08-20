@@ -235,16 +235,16 @@ class class_material {
 	}
 	static function blocksy_single_content_lehrplan(){
 		global $post;
-		if(self::is_oer_impulse() && !self::is_learnview()){
 
+		if(self::is_oer_impulse() && !self::is_learnview()){
 			$lehrplan = self::relilab_get_lehrplanbezug($post);
 
 			if($lehrplan){
-				$html = '<div class="wp-block-relilab-lehrplan"><p><strong>Bildungs-/Lehrplanbezug</strong></p>';
+				$html = '<div class="entry-content"><div class="wp-block-relilab-lehrplan"><p><strong>Bildungs-/Lehrplanbezug</strong></p>';
 				$html .=  $lehrplan;
-				$html .=  '</div>';
+				$html .=  '</div></div>';
 
-				return $html;
+				echo $html;
 			}
 
 		}
@@ -284,7 +284,83 @@ class class_material {
 
 	}
 
+	static function copy_lehrplanbezug($post_id, $target_id){
+		if( have_rows('lehrplanbezug', $post_id) ):
+			while ( have_rows('lehrplanbezug', $post_id) ) : the_row();
+		        $row = array();
+				$row['country'] = get_sub_field('country');
+				$row['kompetenzbereich'] = get_sub_field('kompetenzbereich');
+				$row['bildungsplan_url'] = get_sub_field('bildungsplan_url');
+				// Do something...add_sub_row($selector, $value, [$post_id]);
+				add_row('lehrplanbezug', $row, $target_id);
+			endwhile;
+		endif;
+	}
+
+	static function shortcode_lehrplan(){
+	    global $post;
+
+		ob_start();
+		if( have_rows('lehrplanbezug') ){
+			if($post){
+				$post->lehrplanbezug = true;
+            }
+		    ?>
+            <ul>
+				<?php while( have_rows('lehrplanbezug') ): the_row(); ?>
+                    <li><a href="<?php the_sub_field('bildungsplan_url'); ?>"><?php the_sub_field('kompetenzbereich'); ?></a> (<?php the_sub_field('country'); ?>)</li>
+				<?php endwhile; ?>
+            </ul>
+			<?php
+		}
+		return ob_get_clean();
+	}
+
+	static function shortcode_lehrplan_liste(){
+	    $args =  array(
+	            'post_status'=>'publish',
+                'post_type'=>'material',
+                'numberposts' => 1000
+        );
+
+		$the_query = new WP_Query($args);
+
+		if($the_query->have_posts()){
+			ob_start();
+
+			while ( $the_query->have_posts() ) {
+				$the_query->the_post();
+				$klassen = get_the_term_list(get_the_ID(),'klassenstufe',' für: ',', ');
+				$themen = get_the_term_list(get_the_ID(),'themen','<br>zugeordnete Themen: ',', ');
+				$tags = get_the_term_list(get_the_ID(),'post_tag','<br>zugeordnete Schlagwörter: ',', ');
+
+				if( have_rows('lehrplanbezug') ){ ?>
+                    <ul>
+						<?php while( have_rows('lehrplanbezug') ): the_row();
+
+						    $uri = parse_url(get_sub_field('bildungsplan_url'));
+						?>
+                            <li><strong><em><?php  echo $uri['host'];?> (<?php the_sub_field('country'); ?>)</em></strong>: <br><a href="<?php the_sub_field('bildungsplan_url'); ?>"><?php the_sub_field('kompetenzbereich'); ?></a><br><?php echo $klassen.$themen.$tags;?></li>
+						<?php endwhile; ?>
+                    </ul>
+					<?php
+				}
+			}
+			wp_reset_query();
+			return ob_get_clean();
+		}else{
+			wp_reset_query();
+			return '';
+		}
+	}
+
 	static function relilab_get_lehrplanbezug($impuls){
+
+	    global $post;
+
+		if (!$post || $post->lehrplanbezug === true ) {
+		    return;
+		}
 
 		$the_query = new WP_Query( array('p'=>$impuls->ID,'post_status'=>'publish','post_type'=>'material', 'numberposts' => 1 ));
 
@@ -295,7 +371,7 @@ class class_material {
 				if( have_rows('lehrplanbezug') ){ ?>
 					<ul>
 						<?php while( have_rows('lehrplanbezug') ): the_row(); ?>
-							<li><a href="<?php the_sub_field('bildungsplan_url'); ?>"><?php the_sub_field('kompetenzbereich'); ?></a></li>
+							<li><a href="<?php the_sub_field('bildungsplan_url'); ?>"><?php the_sub_field('kompetenzbereich'); ?></a> (<?php the_sub_field('country'); ?>)</li>
 						<?php endwhile; ?>
 					</ul>
 					<?php
@@ -315,23 +391,18 @@ class class_material {
 
 		$title = wp_kses_stripslashes($_GET['oertitle']);
 		$description = wp_kses_post($_GET['oerdesc']);
-		$lehrplan ='<ul><li></li></ul>';
+		//$lehrplan ='<ul><li></li></ul>';
 		$content= '';
 		$cloud_url = isset($_GET['cloud'])?$_GET['oercloud']:'https://cloud.rpi-virtuell.de/index.php/s/9fLPFgztSSKNpA6';
 		$impuls_id = isset($_GET['oerimpuls'])?intval($_GET['oerimpuls']):false;
 
 		if($impuls_id){
 			$impuls = get_post($impuls_id);
-
 			if($impuls){
-
 				$link = '<a class="oer-impuls-link" href="'.get_the_permalink($impuls_id).'">'.$impuls->post_title.'</a>';
-
-				$lehrplan = self::relilab_get_lehrplanbezug($impuls);
+				//$lehrplan = self::relilab_get_lehrplanbezug($impuls);
 
 			}
-
-
 		}
 
 		//Vorlage importieren
@@ -345,7 +416,7 @@ class class_material {
 		$posts = get_posts($args);
 		if( $posts ) {
 			$vorlage = $posts[0];
-			$content = $vorlage->post_content;
+			$content =  wp_slash($vorlage->post_content);
 		}else{
 			echo 'Es wurde keine Vorlage gefunden.<br>';
 			echo 'Slug: '.PATTERN_DIDAKTIK_INFO_SLUG.'<br>';
@@ -354,8 +425,8 @@ class class_material {
 		}
 
 
-		$search = ['[Kurzbeschreibung]','#cloudurl','[impuls]','<ul><li>Lehrplan</li></ul>'];
-		$repl = [$description,$cloud_url,$link,$lehrplan];
+		$search = ['[Kurzbeschreibung]','#cloudurl','[impuls]'];
+		$repl = [$description,$cloud_url,$link];
 
 		$content = str_replace($search,$repl,$content);
 
@@ -366,9 +437,8 @@ class class_material {
 			'post_type' => 'material',
 			'post_title' => $title,
 			'post_content' => $content,
-
+			'post_excerpt' => $description,
 		);
-
 
 		$post_id = wp_insert_post($new);
 
@@ -376,16 +446,19 @@ class class_material {
 			var_dump($post_id); die();
 		}
 
+		self::copy_lehrplanbezug($impuls_id,$post_id);
+
 		update_post_meta($post_id, 'cloud_url',$cloud_url);
 		update_post_meta($post_id, 'impulse_id', $impuls_id);
 		update_post_meta($post_id, 'excerpt', $description);
 
 
+
 		//taxonomie from oer impuls
 
-		$taxonies = array('post_tag','themen','klassenstufe','lizenz');
+		$taxonomies = array('post_tag','themen','klassenstufe','lizenz');
 
-		foreach ($taxonies as $tax_slug){
+		foreach ($taxonomies as $tax_slug){
 
 			$term_ids = [];
 			$terms = get_the_terms($impuls, $tax_slug);
@@ -420,6 +493,7 @@ class class_material {
 		if($id){
 			$term = wp_set_object_terms( $post_id, array(intval($id)), 'autoren',true);
 		}
+
 
 		wp_redirect(home_url().'/wp-admin/post.php?post='.$post_id.'&action=edit');
 
@@ -549,4 +623,5 @@ add_action('init', function (){
 
 add_filter('coauthors_plus_edit_authors',array('class_material','coauthors_plus_edit_material_authors'));
 
-
+add_shortcode('lehrplan', array('class_material','shortcode_lehrplan'));
+add_shortcode('lehrplan_liste', array('class_material','shortcode_lehrplan_liste'));

@@ -6,7 +6,7 @@ class class_dashboard {
 	/**
 	 * Register Post Type: Dashboard Infos.
 	 */
-	function register_dashpage() {
+	static function register_dashpage() {
 
 		$labels = [
 			"name" => __( "Dashboard Infos", "custom-post-type-ui" ),
@@ -17,8 +17,8 @@ class class_dashboard {
 			"label" => __( "Dashboard Infos", "custom-post-type-ui" ),
 			"labels" => $labels,
 			"description" => "Jede veröffentlichte Seite wird in einem eigenen Dashboard Widget dargestellt.",
-			"public" => true,
-			"publicly_queryable" => true,
+			"public" => false,
+			"publicly_queryable" => false,
 			"show_ui" => true,
 			"show_in_rest" => true,
 			"rest_base" => "",
@@ -45,7 +45,7 @@ class class_dashboard {
 	/**
 	 * Add css and js for dispalying gutenberg blocks in admin
 	 */
-	function add_styles_and_scripts(){
+	static function add_styles_and_scripts(){
 
 		if (is_admin()) {
 			$screen = get_current_screen();
@@ -71,7 +71,6 @@ class class_dashboard {
 				//getwid scripts
 				wp_enqueue_script( 'getwid-blocks-frontend-js-js', 'https://my.relilab.org/wp-content/plugins/getwid/assets/js/frontend.blocks.js?ver=1.7.4' ,null,null,true );
 				wp_enqueue_script( 'kadence-blocks-tabs-js-js', 'https://my.relilab.org/wp-content/plugins/kadence-blocks/dist/kt-tabs-min.js?ver=2.1.2' ,null,null,true );
-				//wp_enqueue_script( 'main-js', 'https://my.relilab.org/wp-content/themes/blocksy/static/bundle/main.min.js' ,null,null,true );
 
 
 			}
@@ -86,7 +85,7 @@ class class_dashboard {
 	 *	@author Ren Ventura <EngageWP.com>
 	 *	@see http://www.engagewp.com/how-to-create-full-width-dashboard-widget-wordpress
 	 */
-	function welcome() {
+	static function welcome() {
 
 		// Bail if not viewing the main dashboard page
 		if ( get_current_screen()->base !== 'dashboard' ) {
@@ -102,7 +101,7 @@ class class_dashboard {
 						<h3>Los geht's</h3>
 						<a class="button button-primary button-hero load-customize hide-if-no-customize" href="<?php echo admin_url(); ?>/profile.php">Anpassen Deines Profils</a>
 						<a class="button button-primary button-hero hide-if-customize" href="<?php echo admin_url(); ?>/profile.php">Anpassen Deines Profils</a>
-						<p class="hide-if-no-customize">Ändere dein Autoren Profil Anzeigenamen</p>
+						<p class="hide-if-no-customize">Ändere deinen Anzeigenamen</p>
 					</div>
 					<div class="welcome-panel-column">
 						<h3>Nächste Schritte</h3>
@@ -128,7 +127,7 @@ class class_dashboard {
 
 	<?php
 	}
-	function remove_dashboard_widgets() {
+	static function remove_dashboard_widgets() {
 		global $wp_meta_boxes;
 
 		//var_dump('<pre>',$wp_meta_boxes); die();
@@ -144,7 +143,6 @@ class class_dashboard {
 		unset($wp_meta_boxes['dashboard']['normal']['core']['admin_dashboard_last_edits_register']);
 		unset($wp_meta_boxes['dashboard']['side']['core']['dashboard_primary']);
 		unset($wp_meta_boxes['dashboard']['side']['core']['dashboard_secondary']);
-		//unset($wp_meta_boxes['dashboard']['normal']['core']['rg_forms_dashboard']);
 
 	}
 	function add_dashboard_pages_widgets() {
@@ -211,7 +209,7 @@ class class_dashboard {
 
 
 	}
-	function add_toolbar_relilab($admin_bar){
+	static function add_toolbar_relilab($admin_bar){
 		if (is_admin()) {
 			$admin_bar->add_menu( array(
 				'id'    => 'relilab-item',
@@ -224,7 +222,7 @@ class class_dashboard {
 			) );
 		}
 	}
-	function add_toolbar_items($admin_bar){
+	static function add_toolbar_items($admin_bar){
 		$admin_bar->add_menu( array(
 			'id'    => 'rpi-item',
 			'title' => '<img src="' . home_url() . '/wp-content/uploads/sites/3/2021/07/rpi-virtuell-Logo-2021-offiziell-nur-Schrift-weiss-e1627078308905.png" style="height:32px;vertical-align: top; ">',

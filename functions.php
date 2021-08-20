@@ -97,219 +97,6 @@ function blocksy_entry_excerpt($length = 40, $class = 'entry-excerpt', $post_id 
 
 /*********** CUSTOM TAXONOMIES ***********Begin*/
 /**
- * forked blocksy core function to display hierachical taxonomies top und nonhierarchical at the bottom of a card
- *
- * @param string $between
- * @param bool $is_category
- *
- * @return string
- */
-if(!function_exists('blocksy_get_categories_list')){
-	function blocksy_get_categories_list($between = '', $is_category = true) {
-
-
-		if(is_singular('material')){
-			$term_slugs = apply_filters('blocksy:custom:termslugs',array('themen', 'klassenstufe', 'post_tag','lizenz'));
-		}else{
-			$term_slugs = apply_filters('blocksy:custom:termslugs',array('themen', 'klassenstufe', 'post_tag','autoren'));
-		}
-
-
-		global $post;
-
-		if (get_post_type() === 'elementor_library') {
-			return '';
-		}
-
-		if (get_post_type() === 'brizy_template') {
-			return '';
-		}
-
-		$category = $is_category ? 'category' : 'post_tag';
-
-		$post_type = get_post_type($post);
-
-		if ($post_type === 'product') {
-			$category = $is_category ? 'product_cat' : 'product_tag';
-		}
-
-		if (
-			$post_type !== 'product'
-			&&
-			$post_type !== 'post'
-			&&
-			$post_type !== 'page'
-		) {
-
-
-			$terms = array();
-
-			$taxonomies = array_values(array_diff(
-				get_object_taxonomies($post_type),
-				['post_format']
-			));
-
-
-			if (count($taxonomies) > 0) {
-				$category = $taxonomies[0];
-
-				foreach ($taxonomies as $single_taxonomy) {
-
-					if(!in_array($single_taxonomy, $term_slugs)){
-					    continue;
-                    }
-
-				    $taxonomy_object = get_taxonomy($single_taxonomy);
-
-					if (
-						$is_category && $taxonomy_object->hierarchical
-						||
-						! $is_category && ! $taxonomy_object->hierarchical
-					) {
-						$category = $single_taxonomy;
-						$mod = $taxonomy_object->hierarchical? 'cat':'tag';
-						$terms[$mod][]=$category;
-
-					}
-
-
-				}
-			} else {
-				return '';
-			}
-		}
-
-		if (! get_taxonomy($category)) {
-			return '';
-		}
-		if($post->post_type !== 'material'){
-			return get_the_term_list( $post, $category, '', $between );
-		}
-
-
-		// special returns for post_type material
-
-
-
-		$authors_term   = 'autoren';
-		//$authors_term   = 'author';
-
-		$spezial_term   = 'lizenz';
-
-		//$between = ', ';
-		$auth_html  = [];
-		$addhtml    = [];
-		$spec_html  = [];
-
-		foreach ($terms as $mod=>$term_list){
-
-
-			//collect taxonomies
-			foreach ($term_list as $term) {
-
-
-			    if($term == $authors_term){
-
-			        $authors = get_the_terms($post->ID,$authors_term);
-
-			        foreach ($authors as $author){
-
-			          $html = '<a href="'.get_term_link($author,'author').'" class="ct-meta-element-author">'.$author->name.'</a>';
-
-			          $auth_html[] = $html;
-
-                    }
-
-
-
-                }
-
-
-				$termlinks = get_the_term_list( $post, $term, '', $between );
-
-				if ( empty( $termlinks ) ) {
-					continue;
-				}
-
-				//allowed tax
-				if(!in_array($term, $term_slugs)){
-					continue;
-				}
-
-				$html = '<span class="' . $term . '">' . $termlinks . '</span>';
-
-				if ( $term === $authors_term ) {
-
-					//$html        = str_replace( ', <a', '<a class="ct-meta-element-author"', $html );
-					//$auth_html[] = $html;
-
-				} elseif ( $term === $spezial_term ) {
-
-					$html = str_replace( '<a', '<a class="ct-meta-element-special"', $html );
-
-					$spec_html[] = $html;
-
-				} else {
-					$addhtml[$mod][ $term ] = $html;
-				}
-			}
-		}
-
-
-
-		$divider = '||';
-
-
-		// Set global var to display lizenz(special) and autoren with icons in the cards meta section
-		global $blocksy_custom_taxonomy_links;
-
-		$blocksy_custom_taxonomy_links['autoren'] = null;
-		$blocksy_custom_taxonomy_links['special'] = null;
-
-		if(count($auth_html)>0){
-
-
-			$blocksy_custom_taxonomy_links['autoren'] =  implode($divider, $auth_html );
-		}
-		if(count($spec_html)>0){
-			$special =   strip_tags(implode($divider, $spec_html) );
-
-			$cc_url = '<a class="cc-license" href="https://creativecommons.org/licenses/%s/4.0/deed.de" target="_blank">'.$special.'</a>';
-			$cc = str_replace('cc ', '',strtolower($special));
-			$cc_link = sprintf($cc_url, $cc);
-
-			$blocksy_custom_taxonomy_links['special'] = $cc_link;
-
-		}
-
-
-		$tags = implode($divider, $addhtml['tag']);
-		$cats = implode($divider, $addhtml['cat']);
-
-
-		if(is_singular('material') && $cats === null){
-
-			return implode($divider, $addhtml['tag']) .'<span style="padding:5px;">'.$between.'</span>'.$blocksy_custom_taxonomy_links['special'];
-
-
-		}elseif(is_singular('material') && $cats !== null){
-
-
-			return ''.implode($divider, $addhtml['cat']);
-
-		}
-
-		if($cats === null ){
-			$divider ='';
-		}
-
-		return $cats.$divider.$tags;
-
-
-	}
-
-}
-/**
  * blocksy filter blocksy:post-meta:items
  *
  * addIcons to custom taxonomies autoren and lizenz to the cards
@@ -322,58 +109,22 @@ if(!function_exists('blocksy_get_categories_list')){
  */
 function blocksy_get_meta_icons($to_return,	$post_meta_descriptor,	$args){
 
-	if(class_material::is_learnview()){
+    if(class_material::is_learnview()){
 		return '';
 	}
+	$by = '<svg width="13" height="13" viewBox="0 0 15 15"><path d="M13.6,1.4c-1.9-1.9-4.9-1.9-6.8,0L2.2,6C2.1,6.1,2,6.3,2,6.5V12l-1.8,1.8c-0.3,0.3-0.3,0.7,0,1C0.3,14.9,0.5,15,0.7,15s0.3-0.1,0.5-0.2L3,13h5.5c0.2,0,0.4-0.1,0.5-0.2l2.7-2.7c0,0,0,0,0,0l1.9-1.9C15.5,6.3,15.5,3.3,13.6,1.4z M8.2,11.6H4.4l1.4-1.4h3.9L8.2,11.6z M12.6,7.2L11,8.9H7.1l3.6-3.6c0.3-0.3,0.3-0.7,0-1C10.4,4,10,4,9.7,4.3L5,9.1c0,0,0,0,0,0l-1.6,1.6V6.8l4.4-4.4c1.3-1.3,3.5-1.3,4.8,0C14,3.7,14,5.9,12.6,7.2C12.6,7.2,12.6,7.2,12.6,7.2z"/></svg>';
+	$copyright = '<svg width="16" height="15" viewBox="0 0 16 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g id="Layer_x0020_1"><g id="_1761831900240"><path d="M8.02,2.603c1.017,-1.102 2.206,-1.604 3.582,-1.409c1.421,0.2 2.63,1.216 3.06,2.584c0.331,1.054 0.194,2.233 -0.249,3.309c-0.689,1.673 -2.726,4.051 -6.413,5.714c-3.687,-1.663 -5.724,-4.041 -6.413,-5.714c-0.443,-1.076 -0.58,-2.255 -0.249,-3.309c0.43,-1.368 1.639,-2.384 3.06,-2.584c1.376,-0.195 2.565,0.307 3.582,1.409c0.002,0.002 0.02,0.021 0.02,0.021c0,0 0.018,-0.019 0.02,-0.021l-0,-0Zm-0.02,-1.563c-2.223,-1.745 -5.707,-1.29 -7.309,1.332c-0.532,0.871 -0.731,1.883 -0.684,2.888c0.081,1.743 0.833,3.267 1.939,4.582c1.488,1.77 3.639,3.161 6.007,4.2c0.003,0.001 0.031,0.013 0.047,0.02c0.014,-0.006 0.04,-0.017 0.047,-0.021c2.356,-1.038 4.519,-2.429 6.007,-4.199c1.106,-1.315 1.858,-2.839 1.939,-4.582c0.047,-1.005 -0.152,-2.017 -0.684,-2.888c-1.602,-2.622 -5.086,-3.077 -7.309,-1.332l-0,-0Z"/><path d="M7.943,7.475l-1.012,-0.501c-0.351,0.513 -0.607,0.86 -1.347,0.657c-0.58,-0.159 -0.752,-0.795 -0.774,-1.328c-0.03,-0.729 0.225,-1.57 1.095,-1.525c0.556,0.028 0.793,0.356 0.92,0.651l1.105,-0.566c-0.544,-1.039 -1.82,-1.392 -2.901,-1.102c-1.15,0.308 -1.733,1.366 -1.712,2.507c0.02,1.167 0.58,2.174 1.783,2.437c0.587,0.129 1.226,0.099 1.769,-0.173c0.42,-0.211 0.887,-0.618 1.074,-1.057l0,0Zm4.77,0l-1.012,-0.501c-0.351,0.513 -0.607,0.86 -1.346,0.657c-0.581,-0.159 -0.752,-0.795 -0.774,-1.328c-0.031,-0.729 0.224,-1.57 1.094,-1.525c0.557,0.028 0.793,0.356 0.92,0.651l1.105,-0.566c-0.544,-1.039 -1.82,-1.392 -2.901,-1.102c-1.15,0.308 -1.733,1.366 -1.712,2.507c0.021,1.167 0.581,2.174 1.783,2.437c0.587,0.129 1.226,0.099 1.769,-0.173c0.42,-0.211 0.887,-0.618 1.074,-1.057l0,0Z"/></g></g></svg>';
+    $date = '<svg width="13" height="13" viewBox="0 0 15 15"><path d="M7.5,0C3.4,0,0,3.4,0,7.5S3.4,15,7.5,15S15,11.6,15,7.5S11.6,0,7.5,0z M7.5,13.6c-3.4,0-6.1-2.8-6.1-6.1c0-3.4,2.8-6.1,6.1-6.1c3.4,0,6.1,2.8,6.1,6.1C13.6,10.9,10.9,13.6,7.5,13.6z M10.8,9.2c-0.1,0.2-0.4,0.4-0.6,0.4c-0.1,0-0.2,0-0.3-0.1L7.2,8.1C7,8,6.8,7.8,6.8,7.5V4c0-0.4,0.3-0.7,0.7-0.7S8.2,3.6,8.2,4v3.1l2.4,1.2C10.9,8.4,11,8.8,10.8,9.2z"/></svg>';
+    $cat = '<svg width="13" height="13" viewBox="0 0 15 15"><path d="M14.4,1.2H0.6C0.3,1.2,0,1.5,0,1.9V5c0,0.3,0.3,0.6,0.6,0.6h0.6v7.5c0,0.3,0.3,0.6,0.6,0.6h11.2c0.3,0,0.6-0.3,0.6-0.6V5.6h0.6C14.7,5.6,15,5.3,15,5V1.9C15,1.5,14.7,1.2,14.4,1.2z M12.5,12.5h-10V5.6h10V12.5z M13.8,4.4H1.2V2.5h12.5V4.4z M5.6,7.5c0-0.3,0.3-0.6,0.6-0.6h2.5c0.3,0,0.6,0.3,0.6,0.6S9.1,8.1,8.8,8.1H6.2C5.9,8.1,5.6,7.8,5.6,7.5z"/></svg>';
+    $tag = '<svg width="13" height="13" viewBox="0 0 15 15"><path d="M5.7,14.4L0.6,9.3c0,0,0,0,0,0c-0.8-0.8-0.8-2.2,0-3l6.1-6.1C6.8,0.1,7,0,7.2,0l7.1,0C14.7,0,15,0.3,15,0.7v7.1c0,0.2-0.1,0.4-0.2,0.5l-6.1,6.1c-0.4,0.4-1,0.6-1.5,0.6C6.7,15,6.1,14.8,5.7,14.4zM13.6,1.4H7.5L1.6,7.3c-0.3,0.3-0.3,0.7,0,1l5.1,5.1c0.3,0.3,0.7,0.3,1,0l5.9-5.9V1.4zM1.1,8.8L1.1,8.8L1.1,8.8zM10.7,5c0.4,0,0.7-0.3,0.7-0.7c0-0.4-0.3-0.7-0.7-0.7h0c-0.4,0-0.7,0.3-0.7,0.7C10,4.6,10.4,5,10.7,5z"/></svg>';
 
-	global $blocksy_custom_taxonomy_links;
+	$to_return = str_replace('By',$by, $to_return);
+	$to_return = str_replace('Copyright',$copyright, $to_return);
+	$to_return = str_replace('At',$date, $to_return);
+	$to_return = str_replace('In',$cat, $to_return);
+	$to_return = str_replace('Tags',$tag, $to_return);
 
-	$cc = $html= '';
-
-
-
-	if($blocksy_custom_taxonomy_links['autoren']!== null){
-
-		if($args["meta_type"] == 'icons' ) {
-			$icon = '<svg width="13" height="13" viewBox="0 0 15 15"><path d="M13.6,1.4c-1.9-1.9-4.9-1.9-6.8,0L2.2,6C2.1,6.1,2,6.3,2,6.5V12l-1.8,1.8c-0.3,0.3-0.3,0.7,0,1C0.3,14.9,0.5,15,0.7,15s0.3-0.1,0.5-0.2L3,13h5.5c0.2,0,0.4-0.1,0.5-0.2l2.7-2.7c0,0,0,0,0,0l1.9-1.9C15.5,6.3,15.5,3.3,13.6,1.4z M8.2,11.6H4.4l1.4-1.4h3.9L8.2,11.6z M12.6,7.2L11,8.9H7.1l3.6-3.6c0.3-0.3,0.3-0.7,0-1C10.4,4,10,4,9.7,4.3L5,9.1c0,0,0,0,0,0l-1.6,1.6V6.8l4.4-4.4c1.3-1.3,3.5-1.3,4.8,0C14,3.7,14,5.9,12.6,7.2C12.6,7.2,12.6,7.2,12.6,7.2z"/></svg>';
-		}else{
-			$icon = 'von ';
-		}
-
-		$html = '<li class="autorenlinks">'.$icon.$blocksy_custom_taxonomy_links['autoren'].'</li>';
-	}
-	if($blocksy_custom_taxonomy_links['special']!== null){
-
-
-		if($args["meta_type"] == 'icons' ) {
-			$icon = '<svg width="16" height="15" viewBox="0 0 16 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><g id="Layer_x0020_1"><g id="_1761831900240"><path d="M8.02,2.603c1.017,-1.102 2.206,-1.604 3.582,-1.409c1.421,0.2 2.63,1.216 3.06,2.584c0.331,1.054 0.194,2.233 -0.249,3.309c-0.689,1.673 -2.726,4.051 -6.413,5.714c-3.687,-1.663 -5.724,-4.041 -6.413,-5.714c-0.443,-1.076 -0.58,-2.255 -0.249,-3.309c0.43,-1.368 1.639,-2.384 3.06,-2.584c1.376,-0.195 2.565,0.307 3.582,1.409c0.002,0.002 0.02,0.021 0.02,0.021c0,0 0.018,-0.019 0.02,-0.021l-0,-0Zm-0.02,-1.563c-2.223,-1.745 -5.707,-1.29 -7.309,1.332c-0.532,0.871 -0.731,1.883 -0.684,2.888c0.081,1.743 0.833,3.267 1.939,4.582c1.488,1.77 3.639,3.161 6.007,4.2c0.003,0.001 0.031,0.013 0.047,0.02c0.014,-0.006 0.04,-0.017 0.047,-0.021c2.356,-1.038 4.519,-2.429 6.007,-4.199c1.106,-1.315 1.858,-2.839 1.939,-4.582c0.047,-1.005 -0.152,-2.017 -0.684,-2.888c-1.602,-2.622 -5.086,-3.077 -7.309,-1.332l-0,-0Z"/><path d="M7.943,7.475l-1.012,-0.501c-0.351,0.513 -0.607,0.86 -1.347,0.657c-0.58,-0.159 -0.752,-0.795 -0.774,-1.328c-0.03,-0.729 0.225,-1.57 1.095,-1.525c0.556,0.028 0.793,0.356 0.92,0.651l1.105,-0.566c-0.544,-1.039 -1.82,-1.392 -2.901,-1.102c-1.15,0.308 -1.733,1.366 -1.712,2.507c0.02,1.167 0.58,2.174 1.783,2.437c0.587,0.129 1.226,0.099 1.769,-0.173c0.42,-0.211 0.887,-0.618 1.074,-1.057l0,0Zm4.77,0l-1.012,-0.501c-0.351,0.513 -0.607,0.86 -1.346,0.657c-0.581,-0.159 -0.752,-0.795 -0.774,-1.328c-0.031,-0.729 0.224,-1.57 1.094,-1.525c0.557,0.028 0.793,0.356 0.92,0.651l1.105,-0.566c-0.544,-1.039 -1.82,-1.392 -2.901,-1.102c-1.15,0.308 -1.733,1.366 -1.712,2.507c0.021,1.167 0.581,2.174 1.783,2.437c0.587,0.129 1.226,0.099 1.769,-0.173c0.42,-0.211 0.887,-0.618 1.074,-1.057l0,0Z"/></g></g></svg>';
-		}else{
-			$icon = 'Copyright ';
-		}
-
-		$cc = '<li class="special-tax">'.$icon.$blocksy_custom_taxonomy_links['special'].'</li>';
-	}
-
-	$html = $html. $to_return.$cc;
-
-	switch($args['meta_divider']){
-		case 'slash':
-			$html = str_replace('||', '<span style="padding-left:5px;">/</span>', $html);
-			break;
-		case 'line':
-			$html = str_replace('||', '<span style="padding-left:5px;">-</span>', $html);
-			break;
-		case 'circle':
-			$html = str_replace('||', '<span style="padding-left:5px;">·</span>', $html);
-			break;
-		default:
-			$html = str_replace('||', '<span style="padding-left:1px;"></span>', $html);
-			break;
-
-	}
-
-	return $html;
-
+    return $to_return;
 }
 add_filter('blocksy:post-meta:items','blocksy_get_meta_icons',10,3);
 /*********** CUSTOM TAXONOMIES **************END*/
