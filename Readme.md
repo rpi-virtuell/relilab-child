@@ -1,5 +1,7 @@
 
-relilab-child ist eine Child Theme von Blocksy
+relilab-child ist ein Child-Theme von Blocksy
+
+![](https://github.com/rpi-virtuell/relilab-child/blob/main/screenshot.png)
 
 Besonderen Dank an die vielen Mitwirkenden, die durch open source Plugins dieses Angebot so genial gemacht haben.
 
