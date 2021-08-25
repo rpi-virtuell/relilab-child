@@ -196,6 +196,13 @@ class class_material {
 
 		if(is_singular('material')){
 
+			$li = new class_license();
+
+
+            return str_replace('[Lizenz]', $li->get_box() ,$content);
+
+            /*
+
 			$autoren = get_the_term_list($post, 'autoren','',', ');
 
 
@@ -211,7 +218,7 @@ class class_material {
 
 			return str_replace($search,$repl, $content);
 
-			//return do_blocks(do_shortcode(self::modify_info_tabs()));
+			*///return do_blocks(do_shortcode(self::modify_info_tabs()));
 		}else{
 			return $content;
 		}
@@ -227,7 +234,12 @@ class class_material {
 			if( self::is_oer_impulse()){
 				echo '<a title="OER von diesem Impuls ausgehend erstellen." class="button oercreate" href ="'.home_url().'/oer-creator/?impuls='.$post->ID.'">OER erstellen</a>';
 			}else{
-				echo '<a title="Dieses Material für SuS anzeigen" class="button learnview" target="_blank" href ="'.get_the_permalink().'/learnview">Zeige Lern-Sicht</a>';
+
+			    $embed = self::shortcode_oer_embed_button();
+
+			    echo '<a title="Dieses Material für SuS anzeigen" class="button learnview" target="_blank" href ="'.get_the_permalink().'learnview">Zeige Lern-Sicht</a>';
+			    echo $embed;
+			    echo '<span title="Dieses Material einbetten" class="button learnview einbetten" target="_blank" href ="#embed">&#x3C;/&#x3E;</span>';
 			}
 			echo '</div>';
         }
@@ -511,7 +523,7 @@ class class_material {
 	static function print_autoren_top_of_content(){
 		global $post;
 
-		if(is_singular('material')){
+		if(is_singular('material') && self::is_learnview()){
 
 			$autoren = get_post_meta($post->ID, 'autoren_slugs', true);
 
@@ -594,7 +606,37 @@ class class_material {
 		}*/
 
 
+        static function shortcode_oer_embed_button(){
 
+	        $title = 'Dieses Lernmedium einbetten';
+	        $id = 'oer-material-'.get_the_ID();
+	        $script = '<iframe style="border:0;" id="'.$id.'" frameBorder="0" scrolling="no"></iframe>';
+	        $script .= '<script src="'.get_stylesheet_directory_uri().'/js/cloudframe.js"></script>';
+	        $script .= "<script>document.getElementById('".$id."').src='".get_the_permalink()."learnview'; setTimeout(iFrameResize,1000);</script>";
+
+	        $block = '<!-- wp:bod/modal-block {"title":"'.$title.'","showOn":"selector","btnBackgdColor":"rgba(160,63,63,0.83)","textAlign":"right","triggerSelector":"einbetten","modalSize":"size-l","modalPadding":"5%","titleColor":"rgba(255,255,255,1)","titleBackgdColor":"rgba(61,0,94,1)","titlePadding":"5%","showCloseBtn":"yes","btnCloseLabel":"X","btnCloseBackgdColor":"rgba(108,0,0,0.1)","btnCloseAlign":"right","className":"bod-block-popup-overlay"} -->
+                    <div class="wp-block-bod-modal-block bod-block-popup align-right bod-block-popup-overlay"><span class="bod-block-popup-trigger type_selector" data-selector="einbetten"></span><div style="background-color:rgba(0, 0, 0, 0.1)" class="bod-block-popup-overlay"></div><div role="dialog" aria-modal="false" aria-labelledby="" aria-describedby="" class="bod-block-popup-wrap"><div style="background-color:#ffffff;border-radius:10px " class="bod-block-popup size-l"><div id="" style="background-color:rgba(61,0,94,1);padding:5% " class="bod-modal-title"><h2 style="color:rgba(255,255,255,1)">'.$title.'</h2></div> <div id="" style="padding:5% " class="bod-modal-content">
+                    <!-- wp:paragraph -->
+                    <p>Kopiere den folgenden <strong>HTML-Code</strong> und füge ihn in dein LMS, CMS oder deine Webseite ein</p>
+                    <!-- /wp:paragraph -->
+                    <!-- wp:html -->
+                    <textarea style="width:100%; height:125px">'.$script.'</textarea>
+                    <p><br>Oder kopiere folgende <strong>Url zur Lernansicht</strong> und füge sie als Link in einen Arbeitsauftrag ein</p>
+                    <input style="width:100%;font-family:Verdana;font-size: 14px;padding: 5px 15px; border:1px solid  var(--form-field-border-initial-color); border-radius: 3px;" value="'.get_the_permalink().'learnview">
+                    <p><br>Zusätzlich kannst du diesen <strong>QR-Code</strong> kopieren. Lernende können ihn über Tablet oder Smartphone scannen und das Lernmedium öffnen</p>
+                    <a href="'.get_the_permalink().'">[qrcode size="5"]'.get_the_permalink().'[/qrcode]</a>
+                    <!-- /wp:html -->
+                    <!-- wp:paragraph -->
+                    
+                    <hr>
+                    <!-- /wp:paragraph -->
+                    <div class="bod-block-close-btn align-right"><button type="button" style="background-color:rgba(108,0,0,0.8);color:#ffffff" class="type_btn bod-btn">X</button></div></div> </div> <div class="bod-block-popup-closer"></div></div></div>
+                    <!-- /wp:bod/modal-block -->';
+
+            return do_shortcode($block);
+
+
+        }
 
 }
 
@@ -621,7 +663,14 @@ add_action('init', function (){
 	}
 });
 
+add_action( 'init', function(){
+	//if(class_material::is_learnview()){
+		wp_enqueue_script('embedframe', get_stylesheet_directory_uri().'/js/cloudframe.content.js',null,null,true);
+	//}
+});
+
 add_filter('coauthors_plus_edit_authors',array('class_material','coauthors_plus_edit_material_authors'));
 
 add_shortcode('lehrplan', array('class_material','shortcode_lehrplan'));
 add_shortcode('lehrplan_liste', array('class_material','shortcode_lehrplan_liste'));
+add_shortcode('oer_embed_button', array('class_material','shortcode_oer_embed_button'));

@@ -315,7 +315,7 @@ class class_dashboard {
 
 }
 
-//Dashpoard Widgets
+//Dashboard Widgets
 add_action( 'init', array('class_dashboard','register_dashpage') );
 remove_action( 'welcome_panel', 'wp_welcome_panel' );
 add_action( 'welcome_panel', array('class_dashboard','welcome' ));

@@ -27,28 +27,15 @@ Version: 1.0.1
 .entry-tags a.cc-license:hover{
     background-color: var(--paletteColor2);
 }
+.entry-card.material .entry-meta li > span {
+     margin-right: -1px;
+}
 .tree{
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
     padding: 10px 0;
     margin-bottom:10px;
 }
-/*
-
-span.themen a {
-    background-color: #F56E36 !important;
-}
-span.themen a:hover {
-    background-color: var(--paletteColor2)!important;
-}
-span.klassenstufe a {
-    background-color: mediumseagreen !important;
-}
-span.klassenstufe a:hover {
-    background-color: var(--paletteColor2)!important;
-}
-*/
-
 .wp-block-relilab-lehrplan{
     border-radius: 5px;
     border: 1px solid #ccc;
@@ -67,6 +54,8 @@ span.klassenstufe a:hover {
     max-width: 100%!important;
     overflow: hidden;
 }
+
+
 /*Ansicht auf dem Handy*/
 @media (max-width: 800px) {
     .ct-container,article{

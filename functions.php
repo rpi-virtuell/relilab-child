@@ -8,6 +8,7 @@ define('PATTERN_DIDAKTIK_INFO_SLUG' , 'infos-fuer-den-unterrichtseinsatz');
 
 include_once "inc/class_dashboard.php";
 include_once "inc/class_material.php";
+include_once "inc/class_license.php";
 
 /*-------------------------------------*/
 
@@ -258,3 +259,4 @@ function homepage_material_index( $query ) {
 		$query->set( 'post_type', 'material' );
 	endif;
 }
+

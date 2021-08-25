@@ -19,6 +19,22 @@ do_action('blocksy:content:bottom');
 
 </footer>
 </div>
+<script>
+
+    if(window != parent){
+        window.scrollTo({
+            top:5000,
+            behavior: "smooth"
+        });
+        setTimeout(function (){
+            window.scrollTo({
+                top:0,
+                behavior: "smooth"
+            })
+        }, 2000)
+    }
+
+</script>
 <?php wp_footer(); ?>
 </body>
 </html>

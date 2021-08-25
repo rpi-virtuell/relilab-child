@@ -24,8 +24,13 @@ body{
     width: 180px;
     margin: 0;
 }
+#adminmenu a:hover{
+    /*
+    */
+}
 .opensub{
-    left: -5px!important;
+    /*left: -5px!important;*/
+
 }
 .opensub .wp-submenu{
     box-shadow: 3px 3px 7px rgba(6, 1, 1, 0.37)!important;
