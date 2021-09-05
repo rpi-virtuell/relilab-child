@@ -310,6 +310,87 @@ class class_dashboard {
 				'class' => 'my_menu_item_class'
 			),
 		));
+
+		$user = wp_get_current_user();
+		$admin_bar->add_menu( array(
+			'id'    => 'my-material',
+			'title' => 'Meine Materialien',
+			'href'  => home_url().'/autoren/'.$user->user_login,
+			'meta'  => array(
+				'title' => __('My Second Sub Menu Item'),
+				'target' => '_self',
+				'class' => 'my_menu_item_class'
+			),
+		));
+		$admin_bar->add_menu( array(
+			'id'    => 'my-material-new',
+			'title' => 'Neues Material erstellen',
+			'parent' => 'my-material',
+			'href'  => admin_url().'/post-new.php?post_type=material',
+			'meta'  => array(
+				'title' => __('My Second Sub Menu Item'),
+				'target' => '_self',
+				'class' => 'my_menu_item_class'
+			),
+		));
+		$admin_bar->add_menu( array(
+			'id'    => 'my-material-edit',
+			'title' => 'Meine Materialien bearbeiten',
+			'parent' => 'my-material',
+			'href'  => admin_url().'/edit.php?post_type=material&author_name='.$user->user_login,
+			'meta'  => array(
+				'title' => __('My Second Sub Menu Item'),
+				'target' => '_self',
+				'class' => 'my_menu_item_class'
+			),
+		));
+
+	}
+	function reorder_admin_bar() {
+		global $wp_admin_bar;
+
+		// The desired order of identifiers (items)
+		$IDs_sequence = array(
+
+            'wp-logo',
+			'rpi-item',
+			'my-sites',
+			'site-name',
+			'new-content',
+			'edit',
+			'archive',
+			'my-material'
+		);
+
+		// Get an array of all the toolbar items on the current
+		// page
+		$nodes = $wp_admin_bar->get_nodes();
+
+		// Perform recognized identifiers
+		foreach ( $IDs_sequence as $id ) {
+			if ( ! isset($nodes[$id]) ) continue;
+
+			// This will cause the identifier to act as the last
+			// menu item
+			$wp_admin_bar->remove_menu($id);
+			$wp_admin_bar->add_node($nodes[$id]);
+
+			// Remove the identifier from the list of nodes
+			unset($nodes[$id]);
+		}
+
+		// Unknown identifiers will be moved to appear after known
+		// identifiers
+		foreach ( $nodes as $id => &$obj ) {
+			// There is no need to organize unknown children
+			// identifiers (sub items)
+			if ( ! empty($obj->parent) ) continue;
+
+			// This will cause the identifier to act as the last
+			// menu item
+			$wp_admin_bar->remove_menu($id);
+			$wp_admin_bar->add_node($obj);
+		}
 	}
 
 
@@ -335,6 +416,6 @@ add_action( 'admin_enqueue_scripts', array('class_dashboard', 'add_styles_and_sc
 add_action('wp_before_admin_bar_render',  array('class_dashboard','remove_toolbar_items'), 999);
 add_action('admin_bar_menu',  array('class_dashboard','add_toolbar_items'), 0);
 add_action('admin_bar_menu',  array('class_dashboard','add_toolbar_relilab'), 20);
-
+add_action( 'wp_before_admin_bar_render',  array('class_dashboard','reorder_admin_bar'));
 
 add_action('wp_dashboard_setup', array('class_dashboard','remove_dashboard_widgets'),9999 );

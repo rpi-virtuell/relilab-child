@@ -236,27 +236,17 @@ apply_filters('coauthors_meta_box_context', function (){return 'side';});
 //Inhalt aus https://my.relilab.org/wp-admin/post.php?post=580&action=edit
 add_action( 'blocksy:hero:after', 'homepage_welcome' );
 function homepage_welcome(){
-	if ( is_home() ){
+	if ( is_home() && !is_search() ){
 
 	    $home = get_post(580);
-	    echo ($home->post_content);
+	    $blocks =parse_blocks($home->post_content);
+	    foreach ($blocks as $block){
+		    echo (render_block($block));
+        }
+
 
     }
 }
-//Materialkachel anzeigen, die OER-Impulse sind
 
-add_action( 'pre_get_posts', 'homepage_material_index' );
-function homepage_material_index( $query ) {
-	if ( is_home() && $query->is_main_query() ) :
-		$meta_query = (array)$query->get('meta_query');
 
-		$meta_query[] = array(
-			'key'     => 'oer_impuls',
-			'value'   => 0,
-			'compare' => '>',
-		);
-		$query->set('meta_query',$meta_query);
-		$query->set( 'post_type', 'material' );
-	endif;
-}
 

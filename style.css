@@ -8,6 +8,12 @@ Description: Based on Blocksy Theme (https://creativethemes.com)
 Tags: oer, education
 Version: 1.0.1
 */
+
+.site-main .hero-section .page-title{
+    text-align: left;
+
+}
+
 .relilab-buttons{
     float:right;
     margin-right: 5%;
@@ -19,7 +25,11 @@ Version: 1.0.1
     border: 1px solid #935DF7;
     font-weight: bold;
 }
-
+/*Klassenstufen*/
+.entry-card.material ul:first-child li:first-child a,
+.single-material .hero-section ul:first-child li:first-child a{
+    background-color: #F56D38;
+}
 .entry-tags a.cc-license{
     background-color: #ddd;
     border: 1px solid var(--paletteColor2);
@@ -44,7 +54,7 @@ Version: 1.0.1
 }
 
 .learnview-container{
-    max-width: 1096px;
+   /* max-width: 1096px;*/
 }
 #wpadminbar{
   background-color: #0073AA!important;
@@ -65,4 +75,56 @@ Version: 1.0.1
         max-width: 100%!important;
     }
 }
+.archive-avatar{
+    display: block;
+    background: linear-gradient(to left, #D027F8, #35B1F6) border-box;
+    min-width:150px;
+    min-height:150px;
+    border-radius:50%;
+    border:15px solid transparent;
+    margin-right: auto;
+    margin-left: auto;
 
+}
+.archive-author-profile{
+
+    box-shadow: 10px 5px 10px rgba(0, 0, 0, 0.1);
+    border:1px solid #35B1F6;
+    border-radius:0px;
+    padding:4px; margin: 0px;
+
+}
+.archive-author-profile h1{
+    font-size: x-large;
+    text-align: center;
+}
+@media (max-width: 800px) {
+    .archive-avatar{
+        margin-top: -65px;
+    }
+
+}
+@media (min-width: 801px) {
+    .archive-author-profile {
+        display: flex;
+        padding:40px;
+        align-items: center;
+    }
+    .archive-author-profile h1{
+        font-size: xx-large;
+        text-align: left;
+    }
+    .archive-author-profile .ap-col-left{
+        flex:25%;
+    }
+    .archive-author-profile .ap-col-right{
+        flex:75%;
+    }
+}
+@media only screen and (max-device-width: 768px) {
+    /* Lernsicht Button ausblenden */
+    .button.learnview{
+        display: none;
+    }
+
+}

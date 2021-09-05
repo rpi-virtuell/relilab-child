@@ -169,6 +169,7 @@ class class_material {
 						}
 					}else{
 						$id = $check['term_id'];
+                        wp_update_term($id,'autoren',array('name'=>$author_name));
 					}
 					$t = get_term($id);
 					$autoren_slugs[] = $t->slug;
@@ -199,7 +200,7 @@ class class_material {
 			$li = new class_license();
 
 
-            return str_replace('[Lizenz]', $li->get_box() ,$content);
+            return preg_replace('/\[Lizenz[^\]]*\]/', $li->get_box() ,$content);
 
             /*
 
@@ -405,7 +406,7 @@ class class_material {
 		$description = wp_kses_post($_GET['oerdesc']);
 		//$lehrplan ='<ul><li></li></ul>';
 		$content= '';
-		$cloud_url = isset($_GET['cloud'])?$_GET['oercloud']:'https://cloud.rpi-virtuell.de/index.php/s/9fLPFgztSSKNpA6';
+		$cloud_url = isset($_GET['oercloud'])?$_GET['oercloud']:'';
 		$impuls_id = isset($_GET['oerimpuls'])?intval($_GET['oerimpuls']):false;
 
 		if($impuls_id){
@@ -428,7 +429,7 @@ class class_material {
 		$posts = get_posts($args);
 		if( $posts ) {
 			$vorlage = $posts[0];
-			$content =  wp_slash($vorlage->post_content);
+			$content =  $vorlage->post_content;
 		}else{
 			echo 'Es wurde keine Vorlage gefunden.<br>';
 			echo 'Slug: '.PATTERN_DIDAKTIK_INFO_SLUG.'<br>';
@@ -437,18 +438,39 @@ class class_material {
 		}
 
 
-		$search = ['[Kurzbeschreibung]','#cloudurl','[impuls]'];
-		$repl = [$description,$cloud_url,$link];
+		$pattern_id = get_post_meta($impuls_id,'vorlage',true);
+
+
+		$pattern = get_post($pattern_id);
+		if( $pattern ) {
+			$content .=  $pattern->post_content;
+		}
+
+		$cloudtree = '';
+
+		if($cloud_url){
+
+			$cloudtree = '<!-- wp:paragraph --><p><strong>Cloudordner</strong></p><!-- /wp:paragraph -->'."\n\n";
+
+			$cloudtree .= '<!-- wp:lazyblock/nextcloud-tree {"url":"'.$cloud_url.'","allowviewer":true,"blockId":"Z1fsOI4","blockUniqueClass":"lazyblock-nextcloud-tree-Z1fsOI4"} /-->';
+
+		}
+
+
+		$content = str_replace('<!-- wp:html -->'."\n".'cloud'."\n".'<!-- /wp:html -->', $cloudtree, $content);
+
+		$search = ['[Kurzbeschreibung]','[impuls]'];
+		$repl = [$description,$link];
 
 		$content = str_replace($search,$repl,$content);
 
-		//var_dump($content);die();
+		//var_dump('<pre>',htmlentities($content));die();
 
 		$new = array(
 			'post_name' => sanitize_title($title),
 			'post_type' => 'material',
 			'post_title' => $title,
-			'post_content' => $content,
+			'post_content' => wp_slash($content),
 			'post_excerpt' => $description,
 		);
 
@@ -516,7 +538,7 @@ class class_material {
 	}
 
 	/**
-	 * SINGLE MATERIAL
+	 * SINGLE MATERIAL (learnview):
 	 * print Autoren and Datum after the Post Title on single material post
 	 */
 
@@ -624,7 +646,7 @@ class class_material {
                     <p><br>Oder kopiere folgende <strong>Url zur Lernansicht</strong> und füge sie als Link in einen Arbeitsauftrag ein</p>
                     <input style="width:100%;font-family:Verdana;font-size: 14px;padding: 5px 15px; border:1px solid  var(--form-field-border-initial-color); border-radius: 3px;" value="'.get_the_permalink().'learnview">
                     <p><br>Zusätzlich kannst du diesen <strong>QR-Code</strong> kopieren. Lernende können ihn über Tablet oder Smartphone scannen und das Lernmedium öffnen</p>
-                    <a href="'.get_the_permalink().'">[qrcode size="5"]'.get_the_permalink().'[/qrcode]</a>
+                    <a href="'.get_the_permalink().'">[qrcode size="5"]'.get_the_permalink().'learnview[/qrcode]</a>
                     <!-- /wp:html -->
                     <!-- wp:paragraph -->
                     
@@ -638,6 +660,181 @@ class class_material {
 
         }
 
+        function print_autoren_taxonomy_description_from_profile(){
+
+            if(is_tax('autoren')){
+
+	            $q_object = get_queried_object();
+	            $user = get_user_by('login', $q_object->slug);
+	            $src = get_avatar_url($user->user_email);
+
+	            if($src){
+	                $img = '<img class="archive-avatar" src="'.$src.'">';
+	            }
+
+	            $author = '<h1>Materialien von '.$q_object->name.'</h1><p>'.$user->user_description.'</p>';
+
+	            echo '
+                    <div class="archive-author-profile">
+                            <div class="ap-col-left">'.$img.'</div>
+                            <div class="ap-col-right">'.$author.'</div>
+                    </div>';
+
+
+            }
+
+
+        }
+
+        function print_autoren_archive_title($title, $old_title,$prefix){
+
+            if(is_tax('autoren')){
+		        return false;
+	        }elseif(is_tax('themen')){
+                return 'Material im Bereich '. $old_title;
+	        }elseif(is_tax('lizenz')){
+		        return 'Material unter '. $old_title;
+		    }elseif(is_tax('klassenstufe')) {
+		        return 'Material für ' . $old_title;
+            }elseif(is_archive()) {
+
+                global $wp_query;
+
+                $meta_query = (array) $wp_query->get( 'meta_query' );
+
+	            if($meta_query[0]['key'] === 'oer_impuls'){
+
+	                $page = get_page_by_path('impulse');
+	                $title = ($page)?$page->post_title:'OER Maker Impulse';
+
+	                return $title;
+	            }elseif ($prefix == 'Archive:'){
+
+	                if($wp_query->get( 'post_type' )=='material'){
+
+	                    if(isset($_GET['s'])){
+		                    return 'Suche in Materialien nach "'.$_GET['s'].'"';
+	                    }
+
+	                    return 'Freie Bildungsmedien (OER)';
+	                }
+
+	            }
+
+
+	        }
+	        return $title;
+
+
+
+        }
+        function impulse_title($title) {
+	        if ( is_page( 'impulse' ) ) {
+		        return 'OER Maker Impulse';
+	        }
+	        return $title;
+        }
+
+
+        static function material_query_settings($query){
+	        if (  !is_search() && is_home() && $query->is_main_query() ) {
+
+		        //Materialkachel auf der Homes anzeigen, die OER-Impulse sind
+
+		        $meta_query = (array) $query->get( 'meta_query' );
+
+		        $meta_query[] = array(
+			        'key'     => 'oer_impuls',
+			        'value'   => 0,
+			        'compare' => '>',
+		        );
+		        $query->set( 'meta_query', $meta_query );
+		        $query->set( 'post_type', 'material' );
+
+	        }elseif ($query->is_main_query() && (is_tag())){
+
+		        //hack um die Anzeige aller Inhalte in der Materialkarten Ansicht zu erzwingen
+		        $tag = $query->get('tag');
+		        $taxquery = array(
+			        'relation' => 'AND',
+			        array(
+				        'taxonomy' => 'klassenstufe',
+				        'field' => 'slug',
+				        'terms' => 'stufe-gibt-es-nicht',
+				        'operator'=> 'NOT IN'
+			        ),
+			        array(
+				        'taxonomy' => 'post_tag',
+				        'field' => 'slug',
+				        'terms' => $tag,
+				        'operator'=> 'IN'
+			        )
+		        );
+
+		        $query->set('tax_query',$taxquery);
+
+
+		        $query->tax_query->relation ='OR';
+		        $query->set( 'post_type', array('material', 'post') );
+
+
+	        }elseif ($query->is_main_query() && (is_search())){
+
+
+		        $s = $query->get('s');
+		        $query->set('s',false);
+
+
+		        $args = array(
+			        'post_type' => array('material','post'),
+			        'post_status' => 'publish',
+			        's' => $s
+		        );
+
+		        $posts = get_posts($args);
+		        $IDs = array();
+		        foreach ($posts as $post){
+			        array_push($IDs,$post->ID);
+		        }
+
+		        global $wp_query;
+
+		        $args = array(
+			        'post__in' => $IDs,
+			        'post_type' => 'material',
+		        );
+		        $wp_query = new WP_Query($args);
+
+	        }elseif ($query->is_main_query() && is_singular('page') && $query->get('pagename')==='impulse'){
+
+		        global $wp_query;
+
+		        $meta_query = array(array(
+			        'key'     => 'oer_impuls',
+			        'value'   => 0,
+			        'compare' => '>',
+		        ));
+
+		        $args = array(
+			        'post_type' => 'material',
+			        'meta_query' => $meta_query
+		        );
+
+		        $wp_query = new WP_Query($args);
+
+
+	        }elseif ($query->is_main_query() && is_singular('page') && $query->get('pagename')==='posts'){
+
+		        global $wp_query;
+
+		        $args = array(
+			        'post_type' => 'post',
+		        );
+
+		        $wp_query = new WP_Query($args);
+
+	        }
+        }
 }
 
 
@@ -656,6 +853,10 @@ add_action( 'wp_insert_post', array('class_material','after_save'), 999, 3 );
 add_filter('the_content', array('class_material','the_content_filter'));
 
 add_action('blocksy:hero:title:after', array('class_material','print_autoren_top_of_content'));
+add_action('blocksy:hero:title:after', array('class_material','print_autoren_taxonomy_description_from_profile'));
+
+add_filter('get_the_archive_title',array('class_material','print_autoren_archive_title'),9999,3);
+add_filter('the_title',array('class_material','impulse_title'),9999,3);
 
 add_action('init', function (){
 	if(isset($_GET['create-oer'])){
@@ -664,9 +865,7 @@ add_action('init', function (){
 });
 
 add_action( 'init', function(){
-	//if(class_material::is_learnview()){
 		wp_enqueue_script('embedframe', get_stylesheet_directory_uri().'/js/cloudframe.content.js',null,null,true);
-	//}
 });
 
 add_filter('coauthors_plus_edit_authors',array('class_material','coauthors_plus_edit_material_authors'));
@@ -674,3 +873,4 @@ add_filter('coauthors_plus_edit_authors',array('class_material','coauthors_plus_
 add_shortcode('lehrplan', array('class_material','shortcode_lehrplan'));
 add_shortcode('lehrplan_liste', array('class_material','shortcode_lehrplan_liste'));
 add_shortcode('oer_embed_button', array('class_material','shortcode_oer_embed_button'));
+add_action( 'pre_get_posts', array('class_material','material_query_settings') ,1,10);
