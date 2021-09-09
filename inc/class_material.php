@@ -233,14 +233,15 @@ class class_material {
 		if(is_singular('material') && !self::is_learnview()){
 		    echo '<div class="relilab-buttons">';
 			if( self::is_oer_impulse()){
-				echo '<a title="OER von diesem Impuls ausgehend erstellen." class="button oercreate" href ="'.home_url().'/oer-creator/?impuls='.$post->ID.'">OER erstellen</a>';
+				echo '<a title="OER von diesem Impuls ausgehend erstellen." class="button oercreate" href ="'.home_url().'/oer-creator/?impuls-title='.urlencode('Kopie von '.$post->post_title).'&impuls='.$post->ID.'">OER erstellen</a>';
 			}else{
 
 			    $embed = self::shortcode_oer_embed_button();
 
-			    echo '<a title="Dieses Material für SuS anzeigen" class="button learnview" target="_blank" href ="'.get_the_permalink().'learnview">Zeige Lern-Sicht</a>';
+			    //echo '<a title="Dieses Material für SuS anzeigen" class="button learnview" target="_blank" href ="'.get_the_permalink().'learnview">Zeige Lern-Sicht</a>';
 			    echo $embed;
-			    echo '<span title="Dieses Material einbetten" class="button learnview einbetten" target="_blank" href ="#embed">&#x3C;/&#x3E;</span>';
+			    echo '<span title="Dieses Material als Lernmedium einbetten oder verlinken" class="button learnview einbetten" target="_blank" href ="#embed"><span class="dashicons dashicons-welcome-view-site"></span></span>';
+				echo '<a title="Kopieren und verändern" class="button oerclone" href ="'.home_url().'/oer-maker-eingabebestaetigung/?copy-oer=1&create-oer=1&oertitle='.urlencode('Kopie von '.$post->post_title).'&oerimpuls='.$post->ID.'"><span class="dashicons dashicons-admin-page"></span></a>';
 			}
 			echo '</div>';
         }
@@ -328,6 +329,18 @@ class class_material {
 		}
 		return ob_get_clean();
 	}
+    static function shortcode_impulse(){
+	    global $post;
+
+	    $clone_id = get_post_meta(get_the_ID(),'impulse_id',true);
+
+	    if($clone_id) {
+
+		    $clone = get_post( $clone_id );
+
+		    return '"<a href="'.get_the_permalink($clone_id).'">' .$clone->post_title.'</a>"';
+	    }
+	}
 
 	static function shortcode_lehrplan_liste(){
 	    $args =  array(
@@ -401,68 +414,86 @@ class class_material {
 	static function create_new_oer(){
 
 		$exclude_terms = array('lehrerbildung');
+		$copy = false;
 
-		$title = wp_kses_stripslashes($_GET['oertitle']);
-		$description = wp_kses_post($_GET['oerdesc']);
-		//$lehrplan ='<ul><li></li></ul>';
+		if(isset($_GET['copy-oer'])){
+			$copy = true;
+		}
+
 		$content= '';
 		$cloud_url = isset($_GET['oercloud'])?$_GET['oercloud']:'';
 		$impuls_id = isset($_GET['oerimpuls'])?intval($_GET['oerimpuls']):false;
+		$title = wp_kses_stripslashes($_GET['oertitle']);
+
+
+		$copy_content = null;
 
 		if($impuls_id){
 			$impuls = get_post($impuls_id);
-			if($impuls){
-				$link = '<a class="oer-impuls-link" href="'.get_the_permalink($impuls_id).'">'.$impuls->post_title.'</a>';
-				//$lehrplan = self::relilab_get_lehrplanbezug($impuls);
+			if($impuls && $copy === true){
 
+			    $copy_content = $impuls->post_content;
+
+			}elseif ($impuls){
+				$link = '<a class="oer-impuls-link" href="'.get_the_permalink($impuls_id).'">'.$impuls->post_title.'</a>';
 			}
 		}
 
-		//Vorlage importieren
-		$args = array(
-			'name'        => PATTERN_DIDAKTIK_INFO_SLUG,
-			'post_type'   => PATTERN_POST_TYPE,
-			'post_status' => 'publish   ',
-			'numberposts' => 1
-		);
+		if($copy_content === null){
 
-		$posts = get_posts($args);
-		if( $posts ) {
-			$vorlage = $posts[0];
-			$content =  $vorlage->post_content;
+			$description = wp_kses_post($_GET['oerdesc']);
+
+			//Vorlage importieren
+			$args = array(
+				'name'        => PATTERN_DIDAKTIK_INFO_SLUG,
+				'post_type'   => PATTERN_POST_TYPE,
+				'post_status' => 'publish   ',
+				'numberposts' => 1
+			);
+
+			$posts = get_posts($args);
+			if( $posts ) {
+				$vorlage = $posts[0];
+				$content =  $vorlage->post_content;
+			}else{
+				echo 'Es wurde keine Vorlage gefunden.<br>';
+				echo 'Slug: '.PATTERN_DIDAKTIK_INFO_SLUG.'<br>';
+
+				wp_die();
+			}
+
+
+			$pattern_id = get_post_meta($impuls_id,'vorlage',true);
+
+
+			$pattern = get_post($pattern_id);
+			if( $pattern ) {
+				$content .=  $pattern->post_content;
+			}
+
+			$cloudtree = '';
+
+			if($cloud_url){
+
+				$cloudtree = '<!-- wp:paragraph --><p><strong>Cloudordner</strong></p><!-- /wp:paragraph -->'."\n\n";
+
+				$cloudtree .= '<!-- wp:lazyblock/nextcloud-tree {"url":"'.$cloud_url.'","allowviewer":true,"blockId":"Z1fsOI4","blockUniqueClass":"lazyblock-nextcloud-tree-Z1fsOI4"} /-->';
+
+			}
+
+
+			$content = str_replace('<!-- wp:html -->'."\n".'cloud'."\n".'<!-- /wp:html -->', $cloudtree, $content);
+
+			$search = ['[Kurzbeschreibung]','[impuls]'];
+			$repl = [$description,$link];
+
+			$content = str_replace($search,$repl,$content);
+
 		}else{
-			echo 'Es wurde keine Vorlage gefunden.<br>';
-			echo 'Slug: '.PATTERN_DIDAKTIK_INFO_SLUG.'<br>';
 
-			wp_die();
+		    $content = $copy_content;
+			$description = $impuls->post_excerpt;
 		}
-
-
-		$pattern_id = get_post_meta($impuls_id,'vorlage',true);
-
-
-		$pattern = get_post($pattern_id);
-		if( $pattern ) {
-			$content .=  $pattern->post_content;
-		}
-
-		$cloudtree = '';
-
-		if($cloud_url){
-
-			$cloudtree = '<!-- wp:paragraph --><p><strong>Cloudordner</strong></p><!-- /wp:paragraph -->'."\n\n";
-
-			$cloudtree .= '<!-- wp:lazyblock/nextcloud-tree {"url":"'.$cloud_url.'","allowviewer":true,"blockId":"Z1fsOI4","blockUniqueClass":"lazyblock-nextcloud-tree-Z1fsOI4"} /-->';
-
-		}
-
-
-		$content = str_replace('<!-- wp:html -->'."\n".'cloud'."\n".'<!-- /wp:html -->', $cloudtree, $content);
-
-		$search = ['[Kurzbeschreibung]','[impuls]'];
-		$repl = [$description,$link];
-
-		$content = str_replace($search,$repl,$content);
 
 		//var_dump('<pre>',htmlentities($content));die();
 
@@ -473,6 +504,7 @@ class class_material {
 			'post_content' => wp_slash($content),
 			'post_excerpt' => $description,
 		);
+
 
 		$post_id = wp_insert_post($new);
 
@@ -639,6 +671,9 @@ class class_material {
 	        $block = '<!-- wp:bod/modal-block {"title":"'.$title.'","showOn":"selector","btnBackgdColor":"rgba(160,63,63,0.83)","textAlign":"right","triggerSelector":"einbetten","modalSize":"size-l","modalPadding":"5%","titleColor":"rgba(255,255,255,1)","titleBackgdColor":"rgba(61,0,94,1)","titlePadding":"5%","showCloseBtn":"yes","btnCloseLabel":"X","btnCloseBackgdColor":"rgba(108,0,0,0.1)","btnCloseAlign":"right","className":"bod-block-popup-overlay"} -->
                     <div class="wp-block-bod-modal-block bod-block-popup align-right bod-block-popup-overlay"><span class="bod-block-popup-trigger type_selector" data-selector="einbetten"></span><div style="background-color:rgba(0, 0, 0, 0.1)" class="bod-block-popup-overlay"></div><div role="dialog" aria-modal="false" aria-labelledby="" aria-describedby="" class="bod-block-popup-wrap"><div style="background-color:#ffffff;border-radius:10px " class="bod-block-popup size-l"><div id="" style="background-color:rgba(61,0,94,1);padding:5% " class="bod-modal-title"><h2 style="color:rgba(255,255,255,1)">'.$title.'</h2></div> <div id="" style="padding:5% " class="bod-modal-content">
                     <!-- wp:paragraph -->
+                    <p><a title="Dieses Material für SuS anzeigen" style="float: right;" class="button learnview" target="_blank" href ="'.get_the_permalink().'learnview">Als Lernmedium öffnen</a></p>
+                    <!-- /wp:paragraph -->
+                    <!-- wp:paragraph -->
                     <p>Kopiere den folgenden <strong>HTML-Code</strong> und füge ihn in dein LMS, CMS oder deine Webseite ein</p>
                     <!-- /wp:paragraph -->
                     <!-- wp:html -->
@@ -654,6 +689,8 @@ class class_material {
                     <!-- /wp:paragraph -->
                     <div class="bod-block-close-btn align-right"><button type="button" style="background-color:rgba(108,0,0,0.8);color:#ffffff" class="type_btn bod-btn">X</button></div></div> </div> <div class="bod-block-popup-closer"></div></div></div>
                     <!-- /wp:bod/modal-block -->';
+
+
 
             return do_shortcode($block);
 
@@ -835,12 +872,46 @@ class class_material {
 
 	        }
         }
+
+        function blocksy_single_content_impuls_video(){
+	        $url ='https://vimeo.com/420277445';
+            $html = '<div class="entry-content"><!-- wp:embed {"url":"'.$url.'","type":"video","providerNameSlug":"vimeo","responsive":true,"align":"center"} -->
+<figure class="wp-block-embed aligncenter is-type-video is-provider-vimeo wp-block-embed-vimeo">
+<div class="wp-block-embed__wrapper">'.$url.'</div>
+</figure>
+<!-- /wp:embed -->
+</div>';
+
+            //echo $html;
+
+        }
+        function blocksy_single_content_cloned(){
+
+            $clone_id = get_post_meta(get_the_ID(),'impulse_id',true);
+
+            if($clone_id){
+
+                $clone = get_post($clone_id);
+
+	            $html = '<div class="entry-content">';
+	            $html .=  '<p>Dieses Material basiert auf einer Kopie der OER "<a href="'.get_the_permalink($clone_id).'">'.$clone->post_title.'</a>".</p>';
+	            $html .=  '</div>';
+
+                echo $html;
+
+            }
+
+        }
+
+
 }
 
 
 add_action('blocksy:single:top', array('class_material','blocksy_single_content_createoer'), 20);
+add_action('blocksy:single:content:top', array('class_material','blocksy_single_content_impuls_video'), 20);
 
-add_action('blocksy:single:content:bottom', array('class_material','blocksy_single_content_lehrplan'), 20);
+add_action('blocksy:single:content:bottom', array('class_material','blocksy_single_content_cloned'), 20);
+add_action('blocksy:single:content:bottom', array('class_material','blocksy_single_content_lehrplan'), 30);
 
 add_action( 'init', array('class_material','register_cpt_material') );
 
@@ -862,6 +933,7 @@ add_action('init', function (){
 	if(isset($_GET['create-oer'])){
 		class_material::create_new_oer();
 	}
+
 });
 
 add_action( 'init', function(){
@@ -871,6 +943,7 @@ add_action( 'init', function(){
 add_filter('coauthors_plus_edit_authors',array('class_material','coauthors_plus_edit_material_authors'));
 
 add_shortcode('lehrplan', array('class_material','shortcode_lehrplan'));
+add_shortcode('impuls', array('class_material','shortcode_impulse'));
 add_shortcode('lehrplan_liste', array('class_material','shortcode_lehrplan_liste'));
 add_shortcode('oer_embed_button', array('class_material','shortcode_oer_embed_button'));
 add_action( 'pre_get_posts', array('class_material','material_query_settings') ,1,10);

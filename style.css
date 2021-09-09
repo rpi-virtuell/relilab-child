@@ -128,3 +128,13 @@ Version: 1.0.1
     }
 
 }
+.button.learnview.einbetten {
+    border-radius: 20px 0 0 20px;
+    background-image: linear-gradient(to left, #D429ED, #FE7E0B);
+    border-right: 0;
+}
+.relilab-buttons .button.oerclone {
+    border-radius: 0 20px 20px 0;
+
+    border-left: 0;
+}
