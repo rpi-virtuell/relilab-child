@@ -36,6 +36,16 @@ add_action( 'wp_enqueue_scripts', 'child_theme_configurator_css', 10 );
 
 // END ENQUEUE PARENT ACTION
 
+add_action( 'after_setup_theme', 'relilab_gutenberg_css' );
+
+function misha_gutenberg_css(){
+
+	add_theme_support( 'editor-styles' ); // if you don't add this line, your stylesheet won't be added
+	add_editor_style( trailingslashit( get_stylesheet_directory_uri() ).'style-editor.css' ); // tries to include style-editor.css directly from your theme folder
+
+}
+
+
 add_filter( 'widget_text', function ($content){
 
     return do_shortcode($content);

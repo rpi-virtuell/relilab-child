@@ -9,6 +9,7 @@ Tags: oer, education
 Version: 1.0.1
 */
 
+
 .site-main .hero-section .page-title{
     text-align: left;
 
@@ -17,7 +18,7 @@ Version: 1.0.1
 .relilab-buttons{
     float:right;
     margin-right: 5%;
-    max-width: 250px;
+    max-width: 450px;
 }
 .relilab-buttons .button{
     background-image:linear-gradient(to right, #D429ED, #FE7E0B);
@@ -122,19 +123,36 @@ Version: 1.0.1
     }
 }
 @media only screen and (max-device-width: 768px) {
-    /* Lernsicht Button ausblenden */
-    .button.learnview{
-        display: none;
+
+    ul, ol{
+        padding-inline-start:10px;
     }
+
 
 }
 .button.learnview.einbetten {
     border-radius: 20px 0 0 20px;
-    background-image: linear-gradient(to left, #D429ED, #FE7E0B);
+    background-image: linear-gradient(to left, #D429ED, #E00BFE);
     border-right: 0;
 }
-.relilab-buttons .button.oerclone {
+.relilab-buttons .button.oerclone, .relilab-buttons .button.oercreate  {
     border-radius: 0 20px 20px 0;
-
     border-left: 0;
+}
+.button.learnview.einbetten:hover::after {
+    content: ' OER für Lernende';
+    margin-left: 25px;
+}
+.button.oercreate:hover::after {
+    content: ' OER erstellen';
+    margin-left: 15px;
+}
+.button.oerclone:hover::after {
+    content: ' Clone erzeugen';
+    margin-left: 15px;
+}
+.button .dashicons, .dashicons-before::before {
+    width: 29px;
+    height: 29px;
+    font-size: 30px;
 }

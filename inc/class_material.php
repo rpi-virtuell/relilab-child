@@ -200,8 +200,11 @@ class class_material {
 			$li = new class_license();
 
 
-            return preg_replace('/\[Lizenz[^\]]*\]/', $li->get_box() ,$content);
+            $content = preg_replace('/\[Lizenz[^\]]*\]/', $li->get_box() ,$content);
 
+
+
+			return self::get_impuls_video().$content;
             /*
 
 			$autoren = get_the_term_list($post, 'autoren','',', ');
@@ -225,6 +228,16 @@ class class_material {
 		}
 
 	}
+
+	static function get_impuls_video(){
+	    $url = get_post_meta(get_the_ID(),'impulsvideo_url',true);
+
+		if($url){
+			return  wp_oembed_get($url);
+        }
+		return '';
+	}
+
 	/**
 	 * Displays a Create OER Buttom at the top of a single material post
 	 */
@@ -232,16 +245,17 @@ class class_material {
 		global $post;
 		if(is_singular('material') && !self::is_learnview()){
 		    echo '<div class="relilab-buttons">';
+			$embed = self::shortcode_oer_embed_button();
+			//echo '<a title="Dieses Material für SuS anzeigen" class="button learnview" target="_blank" href ="'.get_the_permalink().'learnview">Zeige Lern-Sicht</a>';
+			echo $embed;
+			echo '<span title="Dieses Material als Lernmedium einbetten oder verlinken" class="button learnview einbetten" target="_blank" href ="#embed"><span class="dashicons dashicons-welcome-view-site"></span></span>';
+
 			if( self::is_oer_impulse()){
-				echo '<a title="OER von diesem Impuls ausgehend erstellen." class="button oercreate" href ="'.home_url().'/oer-creator/?impuls-title='.urlencode('Kopie von '.$post->post_title).'&impuls='.$post->ID.'">OER erstellen</a>';
+			    //echo '<a title="OER von diesem Impuls ausgehend erstellen." class="button oercreate" href ="'.home_url().'/oer-creator/?impuls-title='.urlencode('Kopie von '.$post->post_title).'&impuls='.$post->ID.'">OER erstellen</a>';
+				echo '<a title="OER von diesem Impuls ausgehend erstellen" class="button oercreate" href ="'.home_url().'/oer-creator/?impuls-title='.urlencode('Kopie von '.$post->post_title).'&impuls='.$post->ID.'"><span class="dashicons dashicons-welcome-write-blog"></span></a>';
 			}else{
 
-			    $embed = self::shortcode_oer_embed_button();
-
-			    //echo '<a title="Dieses Material für SuS anzeigen" class="button learnview" target="_blank" href ="'.get_the_permalink().'learnview">Zeige Lern-Sicht</a>';
-			    echo $embed;
-			    echo '<span title="Dieses Material als Lernmedium einbetten oder verlinken" class="button learnview einbetten" target="_blank" href ="#embed"><span class="dashicons dashicons-welcome-view-site"></span></span>';
-				echo '<a title="Kopieren und verändern" class="button oerclone" href ="'.home_url().'/oer-maker-eingabebestaetigung/?copy-oer=1&create-oer=1&oertitle='.urlencode('Kopie von '.$post->post_title).'&oerimpuls='.$post->ID.'"><span class="dashicons dashicons-admin-page"></span></a>';
+			    echo '<a title="Kopieren und verändern" class="button oerclone" href ="'.home_url().'/oer-maker-eingabebestaetigung/?copy-oer=1&create-oer=1&oertitle='.urlencode('Kopie von '.$post->post_title).'&oerimpuls='.$post->ID.'"><span class="dashicons dashicons-admin-page"></span></a>';
 			}
 			echo '</div>';
         }
@@ -290,8 +304,6 @@ class class_material {
 	 * @return bool
 	 */
 	static public function is_oer_impulse(){
-
-
 		return(
 			is_singular('material') && get_post_meta(get_the_ID(), 'oer_impuls',true)
 		)? true:false;
@@ -413,6 +425,11 @@ class class_material {
 	}
 	static function create_new_oer(){
 
+	    if(!is_user_logged_in()){
+	        //echo 'nicht angemeldet';
+	        return false;
+	    }
+
 		$exclude_terms = array('lehrerbildung');
 		$copy = false;
 
@@ -441,7 +458,7 @@ class class_material {
 
 		if($copy_content === null){
 
-			$description = wp_kses_post($_GET['oerdesc']);
+			$description = $_GET['oerdesc'];
 
 			//Vorlage importieren
 			$args = array(
@@ -662,7 +679,7 @@ class class_material {
 
         static function shortcode_oer_embed_button(){
 
-	        $title = 'Dieses Lernmedium einbetten';
+	        $title = 'Dieses Lernmedium für Lernende';
 	        $id = 'oer-material-'.get_the_ID();
 	        $script = '<iframe style="border:0;" id="'.$id.'" frameBorder="0" scrolling="no"></iframe>';
 	        $script .= '<script src="'.get_stylesheet_directory_uri().'/js/cloudframe.js"></script>';
@@ -674,6 +691,9 @@ class class_material {
                     <p><a title="Dieses Material für SuS anzeigen" style="float: right;" class="button learnview" target="_blank" href ="'.get_the_permalink().'learnview">Als Lernmedium öffnen</a></p>
                     <!-- /wp:paragraph -->
                     <!-- wp:paragraph -->
+                    <p><strong>Einbetten:</strong></p>
+                    <!-- /wp:paragraph -->
+                    <!-- wp:paragraph -->
                     <p>Kopiere den folgenden <strong>HTML-Code</strong> und füge ihn in dein LMS, CMS oder deine Webseite ein</p>
                     <!-- /wp:paragraph -->
                     <!-- wp:html -->
@@ -681,7 +701,7 @@ class class_material {
                     <p><br>Oder kopiere folgende <strong>Url zur Lernansicht</strong> und füge sie als Link in einen Arbeitsauftrag ein</p>
                     <input style="width:100%;font-family:Verdana;font-size: 14px;padding: 5px 15px; border:1px solid  var(--form-field-border-initial-color); border-radius: 3px;" value="'.get_the_permalink().'learnview">
                     <p><br>Zusätzlich kannst du diesen <strong>QR-Code</strong> kopieren. Lernende können ihn über Tablet oder Smartphone scannen und das Lernmedium öffnen</p>
-                    <a href="'.get_the_permalink().'">[qrcode size="5"]'.get_the_permalink().'learnview[/qrcode]</a>
+                    [qrcode size="5"]'.get_the_permalink().'learnview[/qrcode]
                     <!-- /wp:html -->
                     <!-- wp:paragraph -->
                     
@@ -873,18 +893,7 @@ class class_material {
 	        }
         }
 
-        function blocksy_single_content_impuls_video(){
-	        $url ='https://vimeo.com/420277445';
-            $html = '<div class="entry-content"><!-- wp:embed {"url":"'.$url.'","type":"video","providerNameSlug":"vimeo","responsive":true,"align":"center"} -->
-<figure class="wp-block-embed aligncenter is-type-video is-provider-vimeo wp-block-embed-vimeo">
-<div class="wp-block-embed__wrapper">'.$url.'</div>
-</figure>
-<!-- /wp:embed -->
-</div>';
 
-            //echo $html;
-
-        }
         function blocksy_single_content_cloned(){
 
             $clone_id = get_post_meta(get_the_ID(),'impulse_id',true);
