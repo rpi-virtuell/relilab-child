@@ -898,7 +898,7 @@ class class_material {
 
             $clone_id = get_post_meta(get_the_ID(),'impulse_id',true);
 
-            if($clone_id){
+            if($clone_id && !self::is_learnview()){
 
                 $clone = get_post($clone_id);
 
