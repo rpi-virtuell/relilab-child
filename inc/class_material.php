@@ -205,24 +205,7 @@ class class_material {
 
 
 			return self::get_impuls_video().$content;
-            /*
 
-			$autoren = get_the_term_list($post, 'autoren','',', ');
-
-
-			$lizenz = get_the_term_list($post, 'lizenz');
-			$lizenz =   strip_tags( $lizenz );
-
-			$cc_url = '<a class="cc-license" href="https://creativecommons.org/licenses/%s/4.0" target="_blank">'.$lizenz.'</a>';
-			$cc = str_replace('cc ', '',strtolower($lizenz));
-			$cc_link = sprintf($cc_url, $cc);
-
-			$search = ['[Lizenz]','[autoren]'];
-			$repl = [$cc_link,$autoren];
-
-			return str_replace($search,$repl, $content);
-
-			*///return do_blocks(do_shortcode(self::modify_info_tabs()));
 		}else{
 			return $content;
 		}
