@@ -222,6 +222,41 @@ class class_material {
 	}
 
 	/**
+     * Select Impuls H5P
+	 * @param $field
+	 *
+	 * @return mixed
+	 */
+	function acf_load_h5p_impuls_field_choices( $field ) {
+
+		// reset choices
+		$field['choices'] = array();
+
+
+		global $wpdb, $post;
+
+
+
+		// get the textarea value from options page without any formatting
+		$choiced = get_field('h5p_impuls', $post->ID, true);
+
+
+
+		$h5ps = $wpdb->get_results("SELECT id,title FROM {$wpdb->prefix}h5p_content", OBJECT );
+		foreach ($h5ps as $h5p){
+
+			$field['choices'][$h5p->id]= $h5p->title;
+		}
+
+
+		// return the field
+		return $field;
+
+	}
+
+
+
+	/**
 	 * Displays a Create OER Buttom at the top of a single material post
 	 */
 	static function blocksy_single_content_createoer(){
@@ -244,6 +279,7 @@ class class_material {
         }
 
 	}
+
 	static function blocksy_single_content_lehrplan(){
 		global $post;
 
@@ -939,3 +975,4 @@ add_shortcode('impuls', array('class_material','shortcode_impulse'));
 add_shortcode('lehrplan_liste', array('class_material','shortcode_lehrplan_liste'));
 add_shortcode('oer_embed_button', array('class_material','shortcode_oer_embed_button'));
 add_action( 'pre_get_posts', array('class_material','material_query_settings') ,1,10);
+add_filter('acf/load_field/name=h5p_impuls', array('class_material', 'acf_load_h5p_impuls_field_choices' ));
