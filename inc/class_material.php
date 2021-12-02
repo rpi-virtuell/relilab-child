@@ -230,9 +230,7 @@ class class_material {
 	function acf_load_h5p_impuls_field_choices( $field ) {
 
 		// reset choices
-		$field['choices'] = array();
-
-
+		$field['choices']=array();
 		global $wpdb, $post;
 
 
@@ -242,7 +240,9 @@ class class_material {
 
 
 
-		$h5ps = $wpdb->get_results("SELECT id,title FROM {$wpdb->prefix}h5p_content", OBJECT );
+		$h5ps = $wpdb->get_results("SELECT id,title FROM {$wpdb->prefix}h5p_contents", OBJECT );
+
+
 		foreach ($h5ps as $h5p){
 
 			$field['choices'][$h5p->id]= $h5p->title;
