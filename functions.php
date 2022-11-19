@@ -34,6 +34,21 @@ if ( !function_exists( 'child_theme_configurator_css' ) ):
 endif;
 add_action( 'wp_enqueue_scripts', 'child_theme_configurator_css', 10 );
 
+add_action('enqueue_block_assets', function() {
+	if ( ! is_admin() ) {
+	//	return;
+	}
+	if('material'=== get_post_type()){
+		wp_enqueue_script(
+			'template_handling',
+			trailingslashit( get_stylesheet_directory_uri() ) . 'js/myrelilab.js',
+			array(),
+			'1.0',
+			true
+		);
+	}
+});
+
 // END ENQUEUE PARENT ACTION
 
 add_action( 'after_setup_theme', 'relilab_gutenberg_css' );
@@ -50,6 +65,17 @@ add_filter( 'widget_text', function ($content){
 
     return do_shortcode($content);
 });
+
+
+/**
+ * Materialerstellung ausschließlich über formular zulassen
+ */
+function myrelilab_force_create_material_with_form(){
+	if(strpos($_SERVER['SCRIPT_NAME'],'post-new.php')>0 && $_GET['post_type']==='material'){
+		wp_redirect(home_url().'/neues-material-erstellen');
+	}
+}
+add_action('init', 'myrelilab_force_create_material_with_form');
 
 
 /**

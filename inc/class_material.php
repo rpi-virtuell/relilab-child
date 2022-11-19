@@ -462,6 +462,7 @@ class class_material {
 		}
 
 	}
+
 	static function create_new_oer(){
 
 	    if(!is_user_logged_in()){
@@ -484,7 +485,7 @@ class class_material {
 
 		$copy_content = null;
 
-		if($impuls_id){
+		if($impuls_id && $impuls_id>0){
 			$impuls = get_post($impuls_id);
 			if($impuls && $copy === true){
 
