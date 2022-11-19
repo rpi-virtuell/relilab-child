@@ -227,15 +227,23 @@ class class_material {
 	 *
 	 * @return mixed
 	 */
-	function acf_load_h5p_impuls_field_choices( $field ) {
+	static function acf_load_h5p_impuls_field_choices( $field ) {
 
-		// reset choices
+        return $field;
+
+
+		//havy errors!!!
+
+
+        global $wpdb, $post;
+		if(!$post){
+			return $field ;
+		}
+        // reset choices
 		$field['choices']=array();
-		global $wpdb, $post;
 
 
-
-		// get the textarea value from options page without any formatting
+        		// get the textarea value from options page without any formatting
 		$choiced = get_field('h5p_impuls', $post->ID, true);
 
 
@@ -276,6 +284,18 @@ class class_material {
 			    echo '<a title="Kopieren und verändern" class="button oerclone" href ="'.home_url().'/oer-maker-eingabebestaetigung/?copy-oer=1&create-oer=1&oertitle='.urlencode('Kopie von '.$post->post_title).'&oerimpuls='.$post->ID.'"><span class="dashicons dashicons-admin-page"></span></a>';
 			}
 			echo '</div>';
+        }
+
+	}
+    static function blocksy_single_content_impuls_video(){
+
+		global $post;
+		if($post && is_singular('material') && !self::is_learnview()){
+
+		    $impulsh5p = get_post_meta($post->ID,'h5p_impuls',true);
+            if($impulsh5p){
+               echo  do_shortcode( '<div class="entry-content" style="margin-bottom: 50px;">'.$impulsh5p.'</div>' );
+            }
         }
 
 	}
@@ -736,7 +756,7 @@ class class_material {
 
         }
 
-        function print_autoren_taxonomy_description_from_profile(){
+        static function print_autoren_taxonomy_description_from_profile(){
 
             if(is_tax('autoren')){
 
@@ -762,7 +782,7 @@ class class_material {
 
         }
 
-        function print_autoren_archive_title($title, $old_title,$prefix){
+        static function print_autoren_archive_title($title, $old_title,$prefix){
 
             if(is_tax('autoren')){
 		        return false;
@@ -804,7 +824,7 @@ class class_material {
 
 
         }
-        function impulse_title($title) {
+        static function impulse_title($title) {
 	        if ( is_page( 'impulse' ) ) {
 		        return 'OER Maker Impulse';
 	        }
@@ -913,7 +933,7 @@ class class_material {
         }
 
 
-        function blocksy_single_content_cloned(){
+        static function blocksy_single_content_cloned(){
 
             $clone_id = get_post_meta(get_the_ID(),'impulse_id',true);
 

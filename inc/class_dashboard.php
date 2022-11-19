@@ -145,7 +145,7 @@ class class_dashboard {
 		unset($wp_meta_boxes['dashboard']['side']['core']['dashboard_secondary']);
 
 	}
-	function add_dashboard_pages_widgets() {
+    static function add_dashboard_pages_widgets() {
 
 	    $args =array(
 	       'post_type' => 'dashpage',
@@ -191,7 +191,7 @@ class class_dashboard {
 	}
 
 	/********* remove istems from the admin bar *******************/
-	function remove_toolbar_items() {
+	static function remove_toolbar_items() {
 		global $wp_admin_bar;
 
 		$wp_admin_bar->remove_node('wp-logo');
@@ -346,7 +346,7 @@ class class_dashboard {
 		));
 
 	}
-	function reorder_admin_bar() {
+	static function reorder_admin_bar() {
 		global $wp_admin_bar;
 
 		// The desired order of identifiers (items)

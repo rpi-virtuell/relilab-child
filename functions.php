@@ -38,7 +38,7 @@ add_action( 'wp_enqueue_scripts', 'child_theme_configurator_css', 10 );
 
 add_action( 'after_setup_theme', 'relilab_gutenberg_css' );
 
-function misha_gutenberg_css(){
+function relilab_gutenberg_css(){
 
 	add_theme_support( 'editor-styles' ); // if you don't add this line, your stylesheet won't be added
 	add_editor_style( trailingslashit( get_stylesheet_directory_uri() ).'style-editor.css' ); // tries to include style-editor.css directly from your theme folder
@@ -56,9 +56,11 @@ add_filter( 'widget_text', function ($content){
  * fixes blocksy bug: display the correct code form customizer settings
  */
 add_filter("widget_display_callback",function ( $instance, $widget, $args){
+    if(isset($instance["content"])){
+	    $instance["content"] = str_replace('<h2>',$args["before_title"],$instance["content"]);
+	    $instance["content"] = str_replace('</h2>',$args["after_title"],$instance["content"]);
 
-	$instance["content"] = str_replace('<h2>',$args["before_title"],$instance["content"]);
-	$instance["content"] = str_replace('</h2>',$args["after_title"],$instance["content"]);
+    }
 
 	return ($instance);
 }, 1,3);
@@ -258,5 +260,11 @@ function homepage_welcome(){
     }
 }
 
+
+add_filter('pre_option_default_role', function($default_role){
+    // You can also add conditional tags here and return whatever
+    return 'oermaker'; // This is changed
+    return $default_role; // This allows default
+});
 
 
