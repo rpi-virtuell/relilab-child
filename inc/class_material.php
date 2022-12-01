@@ -659,14 +659,12 @@ class class_material {
 		}
 	}
 
-	/** add oermaker to co-author pluss caps **/
+	/** add oermaker to co-author plus caps **/
 	static function coauthors_plus_edit_material_authors($allowed){
 
-		global $post;
+		$current_user = wp_get_current_user();
 
-		if(in_array($post->post_type,array('post','material')) && current_user_can('edit_materials')){
-			$allowed = true;
-		}
+		$allowed = isset( $current_user->allcaps['edit_materials'] ) ? true : $allowed;
 
 		return $allowed;
 
