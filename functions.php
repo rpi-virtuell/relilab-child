@@ -101,23 +101,30 @@ add_filter("widget_display_callback",function ( $instance, $widget, $args){
  *
  * @return false|string
  */
-function blocksy_entry_excerpt($length = 40, $class = 'entry-excerpt', $post_id = null) {
+function blocksy_entry_excerpt($length, $class = 'entry-excerpt', $post_id = null) {
+
+    if(is_array($length)){
+        $length = $length['length'];
+    }
+
 
 	global $post;
 
 	$has_native_excerpt = $post->post_excerpt;
 
+
+
 	if ($has_native_excerpt) {
-		ob_start();
-		blocksy_trim_excerpt(get_the_excerpt($post_id), $length);
-		$excerpt = trim(ob_get_clean());
-	}
+        $excerpt = wp_trim_words(get_the_excerpt($post_id), $length, '…');
+    }
 	if (! $excerpt) {
 
-
-		$excerpt = trim(get_metadata('post',$post->ID,'excerpt',true),$length);
+        $excerpt = (string) get_metadata('post',$post->ID,'excerpt',true);
+		$excerpt = wp_trim_words($excerpt,$length);
 
 	}
+
+
 	ob_start();
 
 	?>
