@@ -605,8 +605,8 @@ class class_material {
         $check = term_exists( $term, $taxonomy );
         if(!$check){
             $new = wp_insert_term($user->display_name,'autoren');
-            if(isset($new['term_id'])){
-                $id = $new['term_id'];
+            if(isset($new->term_id)){
+                $id = $new->term_id;
             }
         }else{
             if(isset($check['term_id'])){
